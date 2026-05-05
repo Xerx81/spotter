@@ -141,3 +141,6 @@ pm.visualizer.set(template, pm.response.json());
 ```
 
 Click send and JSON tab will show the response and visualization tab will show the map like this below:
+
+<img width="1537" height="511" alt="image" src="https://github.com/user-attachments/assets/b17fcfa3-a9c0-4658-8352-8dc4804b8c8d" />
+
