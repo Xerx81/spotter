@@ -51,8 +51,8 @@ def index(request):
         return Response({
             "total_distance_miles": round(total_distance, 2),
             "duration_hours": round(duration_hours, 2),
-            "fuel_stops": optimal_stops,
             "total_fuel_cost": round(total_fuel_cost, 2),
+            "fuel_stops": optimal_stops,
             "route_geometry": route_geometry,
         })
 
