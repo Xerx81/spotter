@@ -48,7 +48,7 @@ def calculate_fuel(route_geometry: list, total_trip_distance: float):
             cheapest_stop = None
             lowest_price = float('inf')
             
-            # Check the math only on the ~5 gas stations in this tiny box
+            # Check the math only on the gas stations in this tiny box
             for stop in stops:
                 stop_x = (stop['longitude'] - lon2) * math.cos(math.radians((lat2 + stop['latitude']) / 2)) * 69.172
                 stop_y = (stop['latitude'] - lat2) * 69.172
