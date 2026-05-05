@@ -2,6 +2,7 @@ from rest_framework import serializers
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
+from .fuel_finder import calculate_fuel
 from .geocoder import get_geocode, get_osrm_route
 
 class LocationSerializer(serializers.Serializer):
@@ -36,13 +37,22 @@ def index(request):
 
         # Get route
         route_data = get_osrm_route(waypoints)
-        route_geometry = None
+        route_geometry = []
+        total_distance = 0
+        duration_hours = 0
         if route_data:
             route_geometry = route_data["geometry"]
+            total_distance = route_data["distance_miles"]
+            duration_hours = route_data["duration_hours"]
+
+        # Calculate fuel
+        optimal_stops, total_fuel_cost = calculate_fuel(route_geometry, total_distance)
 
         return Response({
-            "start_location": start_location,
-            "end_location": end_location,
+            "total_distance_miles": round(total_distance, 2),
+            "duration_hours": round(duration_hours, 2),
+            "fuel_stops": optimal_stops,
+            "total_fuel_cost": round(total_fuel_cost, 2),
             "route_geometry": route_geometry,
         })
 
