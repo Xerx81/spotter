@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from concurrent.futures import ThreadPoolExecutor
 
 from .fuel_finder import calculate_fuel
 from .geocoder import get_geocode, get_osrm_route
@@ -19,8 +20,12 @@ def index(request):
         end_location = serializer.validated_data.get("end_location", "")
 
         # Get coordinates
-        start_location = get_geocode(start_location)
-        end_location = get_geocode(end_location)
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            start_location = executor.submit(get_geocode, start_location)
+            end_location = executor.submit(get_geocode, end_location)
+
+            start_location = start_location.result()
+            end_location = end_location.result()
 
         errors = []
         if not start_location:
