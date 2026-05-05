@@ -74,3 +74,70 @@ docker compose exec web python manage.py geocode
         ...
     ]
 }
+```
+
+### Test it out with Postman
+
+Paste this in the body of the request:
+```json
+{"start_location": "New york", "end_location": "miami"}
+```
+
+Paste this in the scripts tab:
+```
+var template = `
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body style="margin: 0; padding: 0;">
+    <div id="map" style="height: 100vh; width: 100vw;"></div>
+    <script>
+        // 1. Initialize Map
+        var map = L.map('map').setView([39.8283, -98.5795], 4);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+        // 2. THE FIX: Ask Postman for the data asynchronously!
+        pm.getData(function (error, data) {
+            if (error) {
+                document.getElementById('map').innerHTML = "<h3 style='color:red; padding:20px;'>Error fetching data: " + error + "</h3>";
+                return;
+            }
+
+            // 3. Draw the Route using Native GeoJSON
+            if (data.route_geometry && data.route_geometry.length > 0) {
+                var geojsonFeature = {
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "LineString",
+                        "coordinates": data.route_geometry // [lon, lat] format
+                    }
+                };
+
+                var routeLayer = L.geoJSON(geojsonFeature, {
+                    style: { color: '#FF5733', weight: 5, opacity: 0.9 } // Bright orange
+                }).addTo(map);
+
+                map.fitBounds(routeLayer.getBounds());
+            }
+
+            // 4. Draw the Fuel Stops
+            if (data.fuel_stops && data.fuel_stops.length > 0) {
+                data.fuel_stops.forEach(function(stop) {
+                    var marker = L.marker([stop.location[1], stop.location[0]]).addTo(map);
+                    marker.bindPopup("<b>" + stop.name + "</b><br/>" + stop.city + ", " + stop.state);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
+`;
+
+// Pass the raw JSON response directly to the template
+pm.visualizer.set(template, pm.response.json());
+```
+
+Click send and JSON tab will show the response and visualization tab will show the map like this below:
